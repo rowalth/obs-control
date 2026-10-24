@@ -69,9 +69,20 @@ def validate_contract(root: Path, issues: list[str]) -> None:
             if blueprint_sources != components:
                 issues.append("lab blueprint sources must match the scene components")
 
+            blueprint_scene_list = blueprint.get("scenes", [])
             blueprint_scenes = {
-                scene.get("name"): scene for scene in blueprint.get("scenes", [])
+                scene.get("name") or "<unnamed>": scene for scene in blueprint_scene_list
             }
+            if len(blueprint_scenes) != len(blueprint_scene_list):
+                seen_blueprint_names: set[str] = set()
+                duplicate_blueprint_names: set[str] = set()
+                for scene in blueprint_scene_list:
+                    name = scene.get("name") or "<unnamed>"
+                    if name in seen_blueprint_names:
+                        duplicate_blueprint_names.add(name)
+                    seen_blueprint_names.add(name)
+                for name in sorted(duplicate_blueprint_names):
+                    issues.append(f"duplicate lab blueprint scene name: {name}")
             if set(blueprint_scenes) != names:
                 issues.append("lab blueprint scenes must match the scene manifest")
 

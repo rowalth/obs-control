@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import re
+import runpy
 import subprocess
 import tempfile
 import unittest
@@ -91,6 +92,32 @@ class RepositoryContractTests(unittest.TestCase):
         }
         self.assertEqual(screen_pip["SRC_HOST"]["transform"]["scale_x"], 0.25)
         self.assertEqual(screen_pip["SRC_HOST"]["transform"]["position_x"], 1400)
+
+    def test_repository_validator_flags_duplicate_blueprint_scene_names(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            config = root / "config"
+            config.mkdir()
+            for filename in (
+                "remote-podcast.defaults.json",
+                "remote-podcast-scenes.json",
+                "remote-podcast-lab.blueprint.json",
+            ):
+                (config / filename).write_text(
+                    (REPO / "config" / filename).read_text(encoding="utf-8"),
+                    encoding="utf-8",
+                )
+
+            blueprint_path = config / "remote-podcast-lab.blueprint.json"
+            blueprint = json.loads(blueprint_path.read_text(encoding="utf-8"))
+            blueprint["scenes"].append(dict(blueprint["scenes"][0]))
+            blueprint_path.write_text(json.dumps(blueprint), encoding="utf-8")
+
+            namespace = runpy.run_path(str(REPO / "scripts" / "remote-podcast-validate"))
+            issues: list[str] = []
+            namespace["validate_contract"](root, issues)
+
+        self.assertIn("duplicate lab blueprint scene name: 00_PREFLIGHT", issues)
 
     def test_overlays_use_text_content_and_safe_area_constraints(self) -> None:
         for overlay in ("lower-third", "episode-title"):
