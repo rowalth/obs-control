@@ -6,7 +6,8 @@ It combines three layers:
 
 - a local launcher for [`royshil/obs-mcp`](https://github.com/royshil/obs-mcp);
 - reusable operating rules for Codex and Claude;
-- a remote-podcast kit with scene definitions, browser overlays, preflight checks, and Riverside, Teams, and VDO.Ninja runbooks.
+- a remote-podcast kit with a reproducible OBS lab blueprint, browser overlays, preflight
+  checks, and Riverside, Teams, and VDO.Ninja runbooks.
 
 The guest never interacts with OBS.
 The host chooses one guest platform and runs the production machinery locally.
@@ -14,8 +15,9 @@ The host chooses one guest platform and runs the production machinery locally.
 ## Status
 
 The repository is an early public v0.1.
-The portable launcher, production contracts, overlays, validators, and operator runbooks are available.
-Live OBS scene creation and real guest qualification remain controlled operator steps because they can affect a stateful production application.
+The portable launcher, production contracts, validated lab blueprint, overlays, validators,
+and operator runbooks are available. Live OBS changes and real guest qualification remain
+controlled operator steps because they affect a stateful production application.
 
 ## Architecture
 
@@ -131,13 +133,24 @@ PYTHONDONTWRITEBYTECODE=1 \
 
 The offline checks do not mutate OBS, start a recording, or contact a guest platform.
 
+## Reproduce the OBS lab collection
+
+`config/remote-podcast-lab.blueprint.json` captures the public-safe source definitions,
+stacking order, crops, scales, positions, and disabled caption placeholders that were
+validated in the live `Remote Podcast Lab` collection.
+
+Follow `docs/runbooks/build-remote-podcast-lab.md` to rebuild it safely. The repository
+intentionally excludes the raw OBS export because it contains internal UUIDs and absolute
+machine paths.
+
 ## Build a show from the toolkit
 
 1. Read `docs/architecture/remote-podcast-studio.md`.
 2. Choose the English or German guest invitation under `docs/templates/guest-invitation.md`.
 3. Copy `docs/templates/show-brand-handoff.md` into the owning show repository and resolve its asset slots there.
-4. Use `config/remote-podcast-scenes.json` as the canonical scene and component manifest.
-5. Add the browser overlays as local OBS Browser Sources at 1920x1080.
+4. Use `config/remote-podcast-scenes.json` as the canonical scene/component manifest and
+   `config/remote-podcast-lab.blueprint.json` as the reproducible layout contract.
+5. Resolve the browser overlay paths against the local repository at runtime.
 6. Follow the relevant runbook under `docs/runbooks/`.
 7. Build and verify scenes in a disposable collection before promoting them to production.
 

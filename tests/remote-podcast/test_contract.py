@@ -53,6 +53,45 @@ class RepositoryContractTests(unittest.TestCase):
         for scene in manifest["scenes"]:
             self.assertTrue(set(scene["components"]) <= component_names, scene["name"])
 
+    def test_lab_blueprint_is_portable_and_matches_scene_contract(self) -> None:
+        manifest = json.loads(
+            (REPO / "config" / "remote-podcast-scenes.json").read_text()
+        )
+        blueprint = json.loads(
+            (REPO / "config" / "remote-podcast-lab.blueprint.json").read_text()
+        )
+        manifest_scenes = {scene["name"]: scene for scene in manifest["scenes"]}
+        blueprint_scenes = {scene["name"]: scene for scene in blueprint["scenes"]}
+
+        self.assertEqual(set(blueprint["sources"]), set(manifest["components"]))
+        self.assertEqual(set(blueprint_scenes), set(manifest_scenes))
+
+        for name, definition in blueprint["sources"].items():
+            if definition["type"] != "browser":
+                continue
+            path = Path(definition["path"])
+            self.assertFalse(path.is_absolute(), name)
+            self.assertTrue((REPO / path).is_file(), name)
+
+        for name, scene in blueprint_scenes.items():
+            item_sources = [item["source"] for item in scene["items"]]
+            self.assertEqual(item_sources, manifest_scenes[name]["components"], name)
+            for item in scene["items"]:
+                if item["source"] == "OVR_CAPTIONS":
+                    self.assertFalse(item["enabled"], name)
+
+        fifty_fifty = {
+            item["source"]: item for item in blueprint_scenes["12_HOST_GUEST_50_50"]["items"]
+        }
+        self.assertEqual(fifty_fifty["SRC_HOST"]["transform"]["crop_left"], 480)
+        self.assertEqual(fifty_fifty["SRC_GUEST_1"]["transform"]["position_x"], 960)
+
+        screen_pip = {
+            item["source"]: item for item in blueprint_scenes["21_SCREEN_PIP"]["items"]
+        }
+        self.assertEqual(screen_pip["SRC_HOST"]["transform"]["scale_x"], 0.25)
+        self.assertEqual(screen_pip["SRC_HOST"]["transform"]["position_x"], 1400)
+
     def test_overlays_use_text_content_and_safe_area_constraints(self) -> None:
         for overlay in ("lower-third", "episode-title"):
             script = (REPO / "overlays" / overlay / "app.js").read_text()

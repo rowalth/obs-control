@@ -35,6 +35,7 @@ def load_json(path: Path, issues: list[str]) -> object | None:
 def validate_contract(root: Path, issues: list[str]) -> None:
     defaults = load_json(root / "config" / "remote-podcast.defaults.json", issues)
     scenes = load_json(root / "config" / "remote-podcast-scenes.json", issues)
+    blueprint = load_json(root / "config" / "remote-podcast-lab.blueprint.json", issues)
 
     if isinstance(defaults, dict):
         if defaults.get("video") != {"width": 1920, "height": 1080, "fps": 30}:
@@ -49,17 +50,45 @@ def validate_contract(root: Path, issues: list[str]) -> None:
     if isinstance(scenes, dict):
         components = set(scenes.get("components", []))
         names: set[str] = set()
+        manifest_scenes: dict[str, dict] = {}
         for scene in scenes.get("scenes", []):
             name = scene.get("name", "<unnamed>")
             if name in names:
                 issues.append(f"duplicate scene name: {name}")
             names.add(name)
+            manifest_scenes[name] = scene
             unknown = set(scene.get("components", [])) - components
             if unknown:
                 issues.append(f"scene {name} references unknown components: {sorted(unknown)}")
         for required in ("00_PREFLIGHT", "90_TECHNICAL_DIFFICULTIES", "99_END_CARD"):
             if required not in names:
                 issues.append(f"missing required scene: {required}")
+
+        if isinstance(blueprint, dict):
+            blueprint_sources = set(blueprint.get("sources", {}))
+            if blueprint_sources != components:
+                issues.append("lab blueprint sources must match the scene components")
+
+            blueprint_scenes = {
+                scene.get("name"): scene for scene in blueprint.get("scenes", [])
+            }
+            if set(blueprint_scenes) != names:
+                issues.append("lab blueprint scenes must match the scene manifest")
+
+            for name, scene in blueprint_scenes.items():
+                item_sources = [item.get("source") for item in scene.get("items", [])]
+                manifest_scene = manifest_scenes.get(name)
+                if manifest_scene and item_sources != manifest_scene.get("components", []):
+                    issues.append(f"lab blueprint items do not match scene {name}")
+
+            for name, definition in blueprint.get("sources", {}).items():
+                if definition.get("type") != "browser":
+                    continue
+                relative = Path(definition.get("path", ""))
+                if relative.is_absolute() or ".." in relative.parts:
+                    issues.append(f"lab blueprint browser path is not portable: {name}")
+                elif not (root / relative).is_file():
+                    issues.append(f"lab blueprint browser asset is missing: {name}")
 
     for relative in (
         "overlays/lower-third/index.html",
@@ -68,12 +97,14 @@ def validate_contract(root: Path, issues: list[str]) -> None:
         "overlays/episode-title/index.html",
         "overlays/episode-title/style.css",
         "overlays/episode-title/app.js",
+        "config/remote-podcast-lab.blueprint.json",
         "docs/templates/guest-invitation.md",
         "docs/templates/guest-invitation.en.md",
         "docs/templates/guest-invitation.de.md",
         "docs/templates/session-manifest.md",
         "docs/runbooks/remote-podcast-riverside.md",
         "docs/runbooks/remote-podcast-teams.md",
+        "docs/runbooks/build-remote-podcast-lab.md",
     ):
         if not (root / relative).is_file():
             issues.append(f"missing required file: {relative}")

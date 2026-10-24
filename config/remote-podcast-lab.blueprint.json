@@ -1,0 +1,222 @@
+{
+  "schema_version": 1,
+  "validated_live": {
+    "date": "2026-10-24",
+    "obs_version": "32.2.2",
+    "obs_websocket_version": "5.7.4",
+    "platform": "macos"
+  },
+  "collection": {
+    "name": "Remote Podcast Lab",
+    "canvas": {"width": 1920, "height": 1080},
+    "recommended_fps": 30,
+    "fps_is_profile_scoped": true,
+    "generated_default_scene_may_remain": true
+  },
+  "source_kind_candidates": {
+    "color": ["color_source_v3", "color_source"],
+    "browser": ["browser_source"]
+  },
+  "sources": {
+    "SRC_HOST": {
+      "type": "color",
+      "color": "#1d4ed8",
+      "width": 1920,
+      "height": 1080
+    },
+    "SRC_GUEST_1": {
+      "type": "color",
+      "color": "#0f766e",
+      "width": 1920,
+      "height": 1080
+    },
+    "SRC_GUEST_2": {
+      "type": "color",
+      "color": "#7e22ce",
+      "width": 1920,
+      "height": 1080
+    },
+    "SRC_SCREEN": {
+      "type": "color",
+      "color": "#1f2937",
+      "width": 1920,
+      "height": 1080
+    },
+    "SRC_MEDIA": {
+      "type": "color",
+      "color": "#111827",
+      "width": 1920,
+      "height": 1080
+    },
+    "OVR_BRAND": {
+      "type": "color",
+      "color": "#ff5a36",
+      "width": 1920,
+      "height": 12
+    },
+    "OVR_LOWER_THIRD": {
+      "type": "browser",
+      "path": "overlays/lower-third/index.html",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "restart_when_active": true
+    },
+    "OVR_EPISODE_TITLE": {
+      "type": "browser",
+      "path": "overlays/episode-title/index.html",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "restart_when_active": true
+    },
+    "OVR_CAPTIONS": {
+      "type": "color",
+      "color": "#0d121c",
+      "opacity": 0.86,
+      "width": 1600,
+      "height": 110
+    }
+  },
+  "item_order": "bottom_to_top",
+  "scenes": [
+    {
+      "name": "00_PREFLIGHT",
+      "category": "operational",
+      "items": [
+        {"source": "SRC_HOST", "transform": {"crop_left": 480, "crop_right": 480, "position_x": 0, "position_y": 0}},
+        {"source": "SRC_GUEST_1", "transform": {"crop_left": 480, "crop_right": 480, "position_x": 960, "position_y": 0}},
+        {"source": "OVR_LOWER_THIRD"}
+      ]
+    },
+    {
+      "name": "01_HOLDING",
+      "category": "operational",
+      "items": [
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_EPISODE_TITLE"}
+      ]
+    },
+    {
+      "name": "02_INTRO",
+      "category": "operational",
+      "items": [
+        {"source": "SRC_MEDIA"},
+        {"source": "OVR_BRAND"}
+      ]
+    },
+    {
+      "name": "10_HOST_SOLO",
+      "category": "interview",
+      "items": [
+        {"source": "SRC_HOST"},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_LOWER_THIRD"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "11_GUEST_SOLO",
+      "category": "interview",
+      "items": [
+        {"source": "SRC_GUEST_1"},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_LOWER_THIRD"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "12_HOST_GUEST_50_50",
+      "category": "interview",
+      "items": [
+        {"source": "SRC_HOST", "transform": {"crop_left": 480, "crop_right": 480, "position_x": 0, "position_y": 0}},
+        {"source": "SRC_GUEST_1", "transform": {"crop_left": 480, "crop_right": 480, "position_x": 960, "position_y": 0}},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_LOWER_THIRD"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "13_HOST_GUEST_60_40",
+      "category": "interview",
+      "items": [
+        {"source": "SRC_HOST", "transform": {"crop_left": 384, "crop_right": 384, "position_x": 0, "position_y": 0}},
+        {"source": "SRC_GUEST_1", "transform": {"crop_left": 576, "crop_right": 576, "position_x": 1152, "position_y": 0}},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_LOWER_THIRD"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "14_GROUP_GRID",
+      "category": "interview",
+      "items": [
+        {"source": "SRC_HOST", "transform": {"crop_left": 480, "crop_right": 480, "position_x": 0, "position_y": 0}},
+        {"source": "SRC_GUEST_1", "transform": {"scale_x": 0.5, "scale_y": 0.5, "position_x": 960, "position_y": 0}},
+        {"source": "SRC_GUEST_2", "transform": {"scale_x": 0.5, "scale_y": 0.5, "position_x": 960, "position_y": 540}},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "20_SCREEN_SPEAKER",
+      "category": "screen",
+      "items": [
+        {"source": "SRC_SCREEN", "transform": {"scale_x": 0.75, "scale_y": 0.75, "position_x": 0, "position_y": 135}},
+        {"source": "SRC_HOST", "transform": {"crop_left": 720, "crop_right": 720, "position_x": 1440, "position_y": 0}},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "21_SCREEN_PIP",
+      "category": "screen",
+      "items": [
+        {"source": "SRC_SCREEN"},
+        {"source": "SRC_HOST", "transform": {"scale_x": 0.25, "scale_y": 0.25, "position_x": 1400, "position_y": 770}},
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_CAPTIONS", "enabled": false, "transform": {"position_x": 160, "position_y": 900}}
+      ]
+    },
+    {
+      "name": "22_SCREEN_FULL",
+      "category": "screen",
+      "items": [
+        {"source": "SRC_SCREEN"},
+        {"source": "OVR_BRAND"}
+      ]
+    },
+    {
+      "name": "30_MEDIA_FULL",
+      "category": "media",
+      "items": [
+        {"source": "SRC_MEDIA"},
+        {"source": "OVR_BRAND"}
+      ]
+    },
+    {
+      "name": "90_TECHNICAL_DIFFICULTIES",
+      "category": "recovery",
+      "items": [
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_EPISODE_TITLE"}
+      ]
+    },
+    {
+      "name": "98_OUTRO",
+      "category": "operational",
+      "items": [
+        {"source": "SRC_MEDIA"},
+        {"source": "OVR_BRAND"}
+      ]
+    },
+    {
+      "name": "99_END_CARD",
+      "category": "operational",
+      "items": [
+        {"source": "OVR_BRAND"},
+        {"source": "OVR_EPISODE_TITLE"}
+      ]
+    }
+  ]
+}
