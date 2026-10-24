@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Run non-mutating checks before a remote-podcast session."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import shutil
+import socket
+import subprocess
+import sys
+from urllib.parse import urlparse
+
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+def npx_is_available() -> bool:
+    override = os.environ.get("OBS_MCP_NPX")
+    if override:
+        return Path(override).expanduser().is_file()
+    return shutil.which("npx") is not None or (Path.home() / ".local" / "bin" / "npx").is_file()
+
+
+def check_live_socket(issues: list[str]) -> None:
+    endpoint = os.environ.get("OBS_WEBSOCKET_URL", "ws://127.0.0.1:4455")
+    parsed = urlparse(endpoint)
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 4455
+    try:
+        with socket.create_connection((host, port), timeout=1.5):
+            pass
+    except OSError as error:
+        issues.append(f"OBS WebSocket is not reachable at {host}:{port}: {error}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--offline", action="store_true", help="skip the live OBS socket check")
+    mode.add_argument("--live", action="store_true", help="check OBS WebSocket reachability")
+    args = parser.parse_args()
+    issues: list[str] = []
+
+    validation = subprocess.run(
+        [str(REPO / "scripts" / "remote-podcast-validate"), "--root", str(REPO)],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if validation.returncode != 0:
+        issues.append(validation.stdout.strip() or validation.stderr.strip())
+
+    for command in ("node", "python3"):
+        if shutil.which(command) is None:
+            issues.append(f"required command is not available: {command}")
+    if not npx_is_available():
+        issues.append("required command is not available: npx")
+
+    recording_value = os.environ.get("REMOTE_PODCAST_RECORDING_DIR", "")
+    if not recording_value:
+        issues.append("REMOTE_PODCAST_RECORDING_DIR is not set")
+    else:
+        recording_dir = Path(recording_value).expanduser()
+        if not recording_dir.is_dir():
+            issues.append(f"recording directory does not exist: {recording_dir}")
+        elif not os.access(recording_dir, os.W_OK):
+            issues.append(f"recording directory is not writable: {recording_dir}")
+        else:
+            defaults = json.loads(
+                (REPO / "config" / "remote-podcast.defaults.json").read_text(encoding="utf-8")
+            )
+            minimum = float(
+                os.environ.get(
+                    "REMOTE_PODCAST_MIN_FREE_GB",
+                    defaults["recording"]["minimum_free_gb"],
+                )
+            )
+            free_gb = shutil.disk_usage(recording_dir).free / (1024 ** 3)
+            if free_gb < minimum:
+                issues.append(
+                    f"recording directory has {free_gb:.1f} GB free; {minimum:.1f} GB required"
+                )
+
+    if args.live:
+        check_live_socket(issues)
+
+    if issues:
+        print("Remote-podcast preflight failed:")
+        for issue in issues:
+            print(f"- {issue}")
+        return 1
+
+    mode_name = "live" if args.live else "offline"
+    print(f"Remote-podcast {mode_name} preflight passed.")
+    print("This check did not mutate OBS or start a recording.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

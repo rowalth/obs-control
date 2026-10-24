@@ -1,0 +1,23 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+*.log
+
+# Runtime data and recordings never belong in the public repository.
+runtime/
+recordings/
+*.mkv
+*.mov
+*.mp4
+*.webm
+*.wav
+*.flac
+
+# Local test and editor state.
+__pycache__/
+*.py[cod]
+.coverage
+.idea/
+.vscode/

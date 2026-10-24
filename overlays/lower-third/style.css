@@ -1,0 +1,88 @@
+:root {
+  --safe-area: 5vw;
+  --accent: #ff5a36;
+  --panel: rgba(13, 18, 28, 0.92);
+  --text: #ffffff;
+  --muted: #d2d8e4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.lower-third {
+  position: absolute;
+  left: var(--safe-area);
+  bottom: var(--safe-area);
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  width: min(760px, calc(100vw - (2 * var(--safe-area))));
+  color: var(--text);
+  filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.35));
+  transform-origin: left bottom;
+  animation: enter 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.accent {
+  border-radius: 10px 0 0 10px;
+  background: var(--accent);
+}
+
+.copy {
+  min-width: 0;
+  padding: 22px 30px 20px;
+  border-radius: 0 10px 10px 0;
+  background: var(--panel);
+}
+
+.name,
+.role {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.name {
+  font-size: clamp(30px, 3vw, 52px);
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+
+.role {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: clamp(18px, 1.55vw, 28px);
+  line-height: 1.2;
+}
+
+.role:empty {
+  display: none;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateX(-36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lower-third {
+    animation: none;
+  }
+}

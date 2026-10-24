@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+"""Validate the public remote-podcast contract without contacting OBS."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import re
+import sys
+
+
+TEXT_SUFFIXES = {"", ".css", ".html", ".json", ".md", ".py", ".sh", ".toml", ".txt"}
+MEDIA_SUFFIXES = {".flac", ".mkv", ".mov", ".mp4", ".wav", ".webm"}
+SKIP_PARTS = {".git", "__pycache__", "node_modules", "recordings", "runtime"}
+SECRET_PATTERNS = (
+    ("personal home path", re.compile(r"/" + r"Users/[^/\s]+/")),
+    ("possible runtime secret", re.compile(r"(?i)room_password\s*[:=]\s*[^\s<]+")),
+    ("possible runtime secret", re.compile(r"(?i)https?://vdo\.ninja/\?\S*(?:password|room)=")),
+    ("possible guest link", re.compile(r"(?i)https?://(?:studio\.)?riverside\.fm/studio/")),
+    ("possible guest link", re.compile(r"(?i)https?://teams\.microsoft\.com/l/meetup-join/")),
+)
+
+
+def load_json(path: Path, issues: list[str]) -> object | None:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        issues.append(f"missing required file: {path}")
+    except json.JSONDecodeError as error:
+        issues.append(f"invalid JSON in {path}: {error}")
+    return None
+
+
+def validate_contract(root: Path, issues: list[str]) -> None:
+    defaults = load_json(root / "config" / "remote-podcast.defaults.json", issues)
+    scenes = load_json(root / "config" / "remote-podcast-scenes.json", issues)
+
+    if isinstance(defaults, dict):
+        if defaults.get("video") != {"width": 1920, "height": 1080, "fps": 30}:
+            issues.append("default video contract must be 1920x1080 at 30 fps")
+        audio = defaults.get("audio", {})
+        if audio.get("sample_rate_hz") != 48000:
+            issues.append("default audio sample rate must be 48000 Hz")
+        tracks = audio.get("tracks", [])
+        if [track.get("id") for track in tracks] != [1, 2, 3, 4, 5]:
+            issues.append("audio track ids must be 1 through 5")
+
+    if isinstance(scenes, dict):
+        components = set(scenes.get("components", []))
+        names: set[str] = set()
+        for scene in scenes.get("scenes", []):
+            name = scene.get("name", "<unnamed>")
+            if name in names:
+                issues.append(f"duplicate scene name: {name}")
+            names.add(name)
+            unknown = set(scene.get("components", [])) - components
+            if unknown:
+                issues.append(f"scene {name} references unknown components: {sorted(unknown)}")
+        for required in ("00_PREFLIGHT", "90_TECHNICAL_DIFFICULTIES", "99_END_CARD"):
+            if required not in names:
+                issues.append(f"missing required scene: {required}")
+
+    for relative in (
+        "overlays/lower-third/index.html",
+        "overlays/lower-third/style.css",
+        "overlays/lower-third/app.js",
+        "overlays/episode-title/index.html",
+        "overlays/episode-title/style.css",
+        "overlays/episode-title/app.js",
+        "docs/templates/guest-invitation.md",
+        "docs/templates/guest-invitation.en.md",
+        "docs/templates/guest-invitation.de.md",
+        "docs/templates/session-manifest.md",
+        "docs/runbooks/remote-podcast-riverside.md",
+        "docs/runbooks/remote-podcast-teams.md",
+    ):
+        if not (root / relative).is_file():
+            issues.append(f"missing required file: {relative}")
+
+
+def scan_public_tree(root: Path, issues: list[str]) -> None:
+    for path in root.rglob("*"):
+        if not path.is_file() or any(part in SKIP_PARTS for part in path.parts):
+            continue
+        relative = path.relative_to(root)
+        if path.suffix.lower() in MEDIA_SUFFIXES:
+            issues.append(f"recording media must not be tracked: {relative}")
+            continue
+        if path.suffix.lower() not in TEXT_SUFFIXES:
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        for label, pattern in SECRET_PATTERNS:
+            if pattern.search(text):
+                issues.append(f"{label}: {relative}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    args = parser.parse_args()
+    root = args.root.resolve()
+    issues: list[str] = []
+
+    scan_public_tree(root, issues)
+    validate_contract(root, issues)
+
+    if issues:
+        print("Remote-podcast validation failed:")
+        for issue in sorted(set(issues)):
+            print(f"- {issue}")
+        return 1
+
+    print("Remote-podcast repository validation passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

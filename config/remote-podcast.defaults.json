@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "audio": {
+    "sample_rate_hz": 48000,
+    "tracks": [
+      {"id": 1, "role": "full_mix"},
+      {"id": 2, "role": "host_microphone"},
+      {"id": 3, "role": "remote_guest_or_call"},
+      {"id": 4, "role": "media_and_music"},
+      {"id": 5, "role": "additional_guest_or_spare"}
+    ]
+  },
+  "recording": {
+    "container": "mkv",
+    "remux_for_editing": "mp4",
+    "directory_environment_variable": "REMOTE_PODCAST_RECORDING_DIR",
+    "minimum_free_gb": 20,
+    "second_copy_required_before_cleanup": true
+  },
+  "modes": {
+    "default": "riverside",
+    "riverside": {"status": "production", "master": "riverside_isolated_tracks"},
+    "teams": {"status": "fallback", "master": "obs_program_and_audio_tracks"},
+    "vdo_ninja": {
+      "status": "laboratory",
+      "master": "obs_program_and_audio_tracks",
+      "qualification": {
+        "consecutive_passes_required": 3,
+        "minimum_session_minutes": 60,
+        "maximum_session_minutes": 90,
+        "reconnect_test_required": true,
+        "drift_check_required": true
+      }
+    }
+  }
+}

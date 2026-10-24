@@ -1,0 +1,45 @@
+#!/bin/zsh
+set -euo pipefail
+
+readonly default_service="obs-mcp.websocket"
+readonly default_url="ws://127.0.0.1:4455"
+readonly package="obs-mcp@1.1.0"
+
+export OBS_WEBSOCKET_URL="${OBS_WEBSOCKET_URL:-$default_url}"
+
+if [[ -z "${OBS_WEBSOCKET_PASSWORD:-}" ]]; then
+  if [[ "$(/usr/bin/uname -s)" != "Darwin" ]]; then
+    print -u2 "OBS_WEBSOCKET_PASSWORD is unset; provide it through this host's secret manager."
+    exit 78
+  fi
+
+  keychain_service="${OBS_MCP_KEYCHAIN_SERVICE:-$default_service}"
+  keychain_account="${OBS_MCP_KEYCHAIN_ACCOUNT:-${USER:-$(/usr/bin/id -un)}}"
+
+  if ! websocket_password="$(/usr/bin/security find-generic-password \
+    -a "$keychain_account" \
+    -s "$keychain_service" \
+    -w 2>/dev/null)"; then
+    print -u2 "OBS password not found in macOS Keychain."
+    print -u2 "Run: security add-generic-password -U -a \"\$USER\" -s \"$keychain_service\" -w"
+    exit 78
+  fi
+
+  export OBS_WEBSOCKET_PASSWORD="$websocket_password"
+  unset websocket_password
+fi
+
+if [[ -n "${OBS_MCP_NPX:-}" ]]; then
+  npx_bin="$OBS_MCP_NPX"
+elif [[ -n "${HOME:-}" && -x "$HOME/.local/bin/npx" ]]; then
+  npx_bin="$HOME/.local/bin/npx"
+else
+  npx_bin="$(command -v npx 2>/dev/null || true)"
+fi
+
+if [[ -z "$npx_bin" || ! -x "$npx_bin" ]]; then
+  print -u2 "npx is required but was not found. Set OBS_MCP_NPX to its absolute path."
+  exit 69
+fi
+
+exec "$npx_bin" -y "$package"

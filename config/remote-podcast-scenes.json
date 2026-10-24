@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "canvas": {"width": 1920, "height": 1080},
+  "components": [
+    "SRC_HOST",
+    "SRC_GUEST_1",
+    "SRC_GUEST_2",
+    "SRC_SCREEN",
+    "SRC_MEDIA",
+    "OVR_BRAND",
+    "OVR_LOWER_THIRD",
+    "OVR_EPISODE_TITLE",
+    "OVR_CAPTIONS"
+  ],
+  "scenes": [
+    {"name": "00_PREFLIGHT", "category": "operational", "components": ["SRC_HOST", "SRC_GUEST_1", "OVR_LOWER_THIRD"]},
+    {"name": "01_HOLDING", "category": "operational", "components": ["OVR_BRAND", "OVR_EPISODE_TITLE"]},
+    {"name": "02_INTRO", "category": "operational", "components": ["SRC_MEDIA", "OVR_BRAND"]},
+    {"name": "10_HOST_SOLO", "category": "interview", "components": ["SRC_HOST", "OVR_BRAND", "OVR_LOWER_THIRD", "OVR_CAPTIONS"]},
+    {"name": "11_GUEST_SOLO", "category": "interview", "components": ["SRC_GUEST_1", "OVR_BRAND", "OVR_LOWER_THIRD", "OVR_CAPTIONS"]},
+    {"name": "12_HOST_GUEST_50_50", "category": "interview", "components": ["SRC_HOST", "SRC_GUEST_1", "OVR_BRAND", "OVR_LOWER_THIRD", "OVR_CAPTIONS"]},
+    {"name": "13_HOST_GUEST_60_40", "category": "interview", "components": ["SRC_HOST", "SRC_GUEST_1", "OVR_BRAND", "OVR_LOWER_THIRD", "OVR_CAPTIONS"]},
+    {"name": "14_GROUP_GRID", "category": "interview", "components": ["SRC_HOST", "SRC_GUEST_1", "SRC_GUEST_2", "OVR_BRAND", "OVR_CAPTIONS"]},
+    {"name": "20_SCREEN_SPEAKER", "category": "screen", "components": ["SRC_SCREEN", "SRC_HOST", "OVR_BRAND", "OVR_CAPTIONS"]},
+    {"name": "21_SCREEN_PIP", "category": "screen", "components": ["SRC_SCREEN", "SRC_HOST", "OVR_BRAND", "OVR_CAPTIONS"]},
+    {"name": "22_SCREEN_FULL", "category": "screen", "components": ["SRC_SCREEN", "OVR_BRAND"]},
+    {"name": "30_MEDIA_FULL", "category": "media", "components": ["SRC_MEDIA", "OVR_BRAND"]},
+    {"name": "90_TECHNICAL_DIFFICULTIES", "category": "recovery", "components": ["OVR_BRAND", "OVR_EPISODE_TITLE"]},
+    {"name": "98_OUTRO", "category": "operational", "components": ["SRC_MEDIA", "OVR_BRAND"]},
+    {"name": "99_END_CARD", "category": "operational", "components": ["OVR_BRAND", "OVR_EPISODE_TITLE"]}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "obs": {
+      "command": "/absolute/path/to/obs-control/scripts/obs-mcp-launcher",
+      "args": []
+    }
+  }
+}

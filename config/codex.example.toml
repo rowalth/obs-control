@@ -1,0 +1,5 @@
+[mcp_servers.obs]
+command = "/absolute/path/to/obs-control/scripts/obs-mcp-launcher"
+args = []
+startup_timeout_sec = 30
+tool_timeout_sec = 60
