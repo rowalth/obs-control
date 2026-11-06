@@ -10,4 +10,4 @@ def frames_to_seconds(frame_count: int, frames_per_second: int) -> float:
         raise ValueError("frame_count must be nonnegative")
     if frames_per_second <= 0:
         raise ValueError("frames_per_second must be positive")
-    return frame_count // frames_per_second
+    return frame_count / frames_per_second
